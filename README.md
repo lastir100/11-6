@@ -26,7 +26,69 @@ master-master
 
 *Приложите скриншоты конфигурации, выполнения работы: состояния и режимы работы серверов.*
 ### Решение 2
-
+master:
+Dockerfile_master
+```
+FROM mysql:9.3
+# Копируем файлы конфигурации
+COPY ./master.cnf /etc/mysql/conf.d/my.cnf
+COPY ./master.sql /docker-entrypoint-initdb.d/start.sql
+# Переменные окружения для настройки репликации
+ENV MYSQL_ROOT_PASSWORD=12345
+# Запускаем сервисы
+CMD ["mysqld"]
+```
+master.cnf
+```
+[mysqld]
+server-id=1
+log-bin = mysql-bin
+binlog_format=ROW
+```
+master.sql
+```
+CREATE USER 'repl'@'%' IDENTIFIED BY 'slavepass';
+GRANT REPLICATION SLAVE ON *.* TO 'repl'@'%';
+FLUSH PRIVILEGES;
+```
+replica:
+Dockerfile_slave
+```
+FROM mysql:9.3
+# Копируем файлы конфигурации
+COPY ./slave.cnf /etc/mysql/conf.d/my.cnf
+COPY ./slave.sql /docker-entrypoint-initdb.d/start.sql
+# Переменные окружения для настройки репликации
+ENV MYSQL_ROOT_PASSWORD=12345
+# Запускаем сервисы
+CMD ["mysqld"]
+```
+slave.cnf
+```
+[mysqld]
+server-id=2
+read_only = 1
+```
+slave.sql
+```
+CHANGE REPLICATION SOURCE TO
+SOURCE_HOST='mysql_master',
+SOURCE_USER='repl',
+SOURCE_PASSWORD='slavepass',
+SOURCE_SSL=1;
+START REPLICA;
+```
+сборка и запуск контейнеров:
+```
+docker build -t mysql_master -f ./Dockerfile_master .
+docker build -t mysql_slave -f ./Dockerfile_slave .
+docker run -d --name mysql_master --net replication -p 3307:3306 mysql_master
+docker run -d --name mysql_slave --net replication -p 3308:3306 mysql_slave
+```
+![](./img/task2-1)
+![](./img/task2-2)
+![](./img/task2-3)
+![](./img/task2-4)
 
 ---
 
