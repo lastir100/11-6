@@ -85,10 +85,14 @@ docker build -t mysql_slave -f ./Dockerfile_slave .
 docker run -d --name mysql_master --net replication -p 3307:3306 mysql_master
 docker run -d --name mysql_slave --net replication -p 3308:3306 mysql_slave
 ```
-![](./img/task2-1)
-![](./img/task2-2)
-![](./img/task2-3)
-![](./img/task2-4)
+
+![](./img/task2-1.jpg)
+
+![](./img/task2-2.jpg)
+
+![](./img/task2-3.jpg)
+
+![](./img/task2-4.jpg)
 
 ---
 
